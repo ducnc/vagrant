@@ -1,0 +1,9 @@
+Vagrant.configure("2") do |config|
+  config.vm.define :suricata do |suricata|
+    suricata.vm.box = "centos/7"
+    suricata.ssh.insert_key = false
+#    suricata.ssh.username = "vagrant"
+#    suricata.ssh.password = "vagrant"
+  end
+end
+
