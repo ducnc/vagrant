@@ -1,9 +1,38 @@
 Vagrant.configure("2") do |config|
-  config.vm.define :suricata do |suricata|
-    suricata.vm.box = "centos/7"
-    suricata.ssh.insert_key = false
-#    suricata.ssh.username = "vagrant"
-#    suricata.ssh.password = "vagrant"
+  config.vm.define :vm1 do |vm1|
+    vm1.vm.box = "ubuntu14"
+    vm1.vm.hostname = "vm1"
+    vm1.vm.provider :libvirt do |libvirt|
+      #libvirt.host = "localhost"
+      libvirt.memory = 1024
+      libvirt.cpus = 1
+      libvirt.nested = true
+    end
+
+    vm1.ssh.insert_key = false
+    #vm1.ssh.username = "vagrant"
+    #vm1.ssh.password = "vagrant"
+
+    # Setup interface mode bridge with OpenvSwitch, driver macvtap@ovsbr0
+    #vm1.vm.network :public_network, :dev => "ovsbr0", :ovs => true, :mode => "vepa"
+    # Setup interface tap attack to OVS, require libvirt network ovsbr0 (https://gist.github.com/jdoss/64ecd24b74792efaa794#enable-libvirt-to-use-open-vswtich)
+    vm1.vm.network :private_network, :libvirt__network_name => "ovsbr0", :libvirt__iface_name => "vm1eth1"
+  end
+end
+
+
+Vagrant.configure("2") do |config|
+  config.vm.define :vm2 do |vm2|
+    vm2.vm.box = "centos/7"
+    vm2.vm.hostname = "vm2"
+    vm2.ssh.insert_key = false
+    vm2.vm.network :private_network, :libvirt__network_name => "ovsbr0", :libvirt__iface_name => "vm2eth1"
+    config.vm.provider :libvirt do |libvirt|
+      #libvirt.host = "localhost"
+      libvirt.memory = 1024
+      libvirt.cpus = 1
+      libvirt.nested = true
+    end
   end
 end
 
