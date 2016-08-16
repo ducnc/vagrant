@@ -1,0 +1,45 @@
+$script = <<SCRIPT
+sudo -i
+apt-get -y install git
+
+useradd -m stack
+echo "stack:stack" | chpasswd
+echo "stack ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+sleep 5
+su - stack
+#git clone https://github.com/openstack-dev/devstack.git
+whoami
+echo "Clone Devstack"
+git clone -b stable/mitaka https://github.com/openstack-dev/devstack.git
+
+cd devstack
+wget https://raw.githubusercontent.com/hocchudong/ghichep-devstack/master/local.conf-guts-aptira
+
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.vm.define :vm1 do |vm1|
+    vm1.vm.box = "ubuntu/trusty64"
+    vm1.vm.hostname = "taas"
+    vm1.ssh.insert_key = false
+    #vm1.ssh.username = "vagrant"
+    #vm1.ssh.password = "vagrant"
+
+    vm1.vm.network :private_network, :libvirt__network_name => "bridge1", :libvirt__iface_name => "taasnode1"
+
+    vm1.vm.provider :libvirt do |libvirt|
+      #libvirt.host = "localhost"
+      libvirt.memory = 8192
+      libvirt.cpus = 8
+      libvirt.nested = true
+
+      # Config Storage domain, if not define, default domain istead
+      libvirt.storage_pool_name = "vagrant"
+
+    end
+  end
+
+  config.vm.provision "shell", inline: $script
+
+end
